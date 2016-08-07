@@ -11,35 +11,37 @@ module.exports = mountHostname;
  * may be a Koa application or
  * middleware function.
  *
- * @param {String|Application|Function} hostname, app, or function
+ * @param {String|RegExp} hostname, app, or function
  * @param {Application|Function} [app or function]
  * @return {Function}
  * @api public
  */
 
 function mountHostname(hostname, app) {
-  if ('string' != typeof hostname) {
-    app = hostname;
-    hostname = '';
-  }
-
   // compose
-  var downstream = app.middleware
+  const downstream = app.middleware
     ? compose(app.middleware)
     : app;
 
-  // don't need to do mounting here
-  if ('' == hostname) return downstream;
+  debug('mount %s %s', hostname, app.name || 'unnamed');
 
-  var name = app.name || 'unnamed';
-  debug('mount %s %s', hostname, name);
+  return function *(upstream) {
+    if (typeof hostname === 'string') {
+      if (hostname !== this.hostname) {
+        return yield* upstream;
+      }
+    }
 
-  return function *(upstream){
-    if (this.hostname !== hostname) return yield* upstream;
+    if (hostname instanceof RegExp) {
+      if (!hostname.test(this.hostname)) {
+        return yield* upstream;
+      }
+    }
+
 
     debug('enter %s', hostname);
 
-    yield* downstream.call(this, function *(){
+    yield* downstream.call(this, function *() {
       yield* upstream;
     }.call(this));
 

@@ -11,12 +11,12 @@ $ npm install koa-mount-hostname
 ### Example
 
 ```js
-var mountHostname = require('koa-mount-hostname');
-var koa = require('koa');
+const mountHostname = require('koa-mount-hostname');
+const koa = require('koa');
 
 // hello
 
-var a = koa();
+const a = koa();
 
 a.use(function *(next){
   this.body = 'Hello';
@@ -24,7 +24,7 @@ a.use(function *(next){
 
 // world
 
-var b = koa();
+const b = koa();
 
 b.use(function *(next){
   this.body = 'World';
@@ -32,10 +32,10 @@ b.use(function *(next){
 
 // app
 
-var app = koa();
+const app = koa();
 
 app.use(mountHostname('www.website1.com', a));
-app.use(mountHostname('www.website2.com', b));
+app.use(mountHostname(/^[a-z]+\.website2\.com$/i, b));
 
 app.listen(3000);
 ```
